@@ -10,6 +10,7 @@ import tkinter as tk
 import zipfile
 import os
 import socket
+import ssl
 
 
 class TestEmailMaker(unittest.TestCase):
@@ -186,11 +187,104 @@ class TestMakeZip(unittest.TestCase):
 
 class TestSMTP(unittest.TestCase):
     def test_init(self):
-        SMTP._init_socket = MagicMock(return_value='socket')
+        SMTP._init_socket = MagicMock(return_value=socket.socket())
         smtp = SMTP('servername', 123)
         self.assertEqual(smtp._server, ('servername', 123))
-        self.assertEqual(smtp.sock, 'socket')
+        self.assertIsInstance(smtp.sock, socket.socket)
         self.assertIsInstance(smtp.list_of_recip, list)
+
+    # def test_init_socket(self):
+    #     socket.socket.connect = MagicMock()
+    #     socket.socket.recv = MagicMock(return_value='220'.encode())
+    #     socket.socket.sendall = MagicMock()
+    #     ssl.wrap_socket = MagicMock(return_value=socket.socket())
+    #     result = SMTP._init_socket('address')
+    #     self.assertIsInstance(result, socket.socket)
+
+    def test_rec_data(self):
+        socket.socket.recv = MagicMock(return_value=''.encode())
+        expectation = ''
+        smtp = SMTP('address', 9090)
+        result = smtp._rec_data()
+        self.assertEqual(expectation, result)
+
+    def test_indicate_sender(self):
+        SMTP._init_socket = MagicMock(return_value=socket.socket())
+        socket.socket.recv = MagicMock(return_value='250 '.encode())
+        SMTP._send_data = MagicMock()
+        smtp = SMTP('servername', 9090)
+        self.assertIsNone(smtp.indicate_the_sender('sender'))
+
+    def test_indicate_sender_exception(self):
+        SMTP._init_socket = MagicMock(return_value=socket.socket())
+        SMTP._send_data = MagicMock()
+        smtp = SMTP('servername', 9090)
+        socket.socket.recv = MagicMock(return_value='350 '.encode())
+        try:
+            self.assertIsNone(smtp.indicate_the_sender('sender'))
+        except Exception as ex:
+            self.assertRaises(Exception, ex)
+
+    def test_indicate_recipient(self):
+        SMTP._init_socket = MagicMock(return_value=socket.socket())
+        SMTP._send_data = MagicMock()
+        socket.socket.recv = MagicMock(return_value='250 '.encode())
+        smtp = SMTP('servername', 9090)
+        list_of_recipients = ['recipient']
+        self.assertIsNone(smtp.indicate_the_recipient(list_of_recipients))
+
+    def test_indicate_recipient_except(self):
+        socket.socket.recv = MagicMock(return_value='350 '.encode())
+        smtp = SMTP('servername', 9090)
+        list_of_recipients = ['recipient']
+        try:
+            self.assertIsNone(smtp.indicate_the_recipient(list_of_recipients))
+        except Exception as ex:
+            self.assertRaises(Exception, ex)
+
+    def test_send_email(self):
+        socket.socket.recv = MagicMock(return_value='354 '.encode())
+        smtp = SMTP('servername', 9090)
+        try:
+            self.assertIsNone(smtp.send_email('abracadabra'))
+        except Exception as exep:
+            self.assertRaises(Exception, exep)
+
+    def test_send_email_except(self):
+        socket.socket.recv = MagicMock(return_value='350 '.encode())
+        smtp = SMTP('servername', 9090)
+        try:
+            self.assertIsNone(smtp.send_email('abracadabra'))
+        except Exception as exep:
+            self.assertRaises(Exception, exep)
+
+    def test_helo(self):
+        SMTP._send_data = MagicMock()
+        SMTP._init_socket = MagicMock(return_value=socket.socket())
+        socket.socket.recv = MagicMock(return_value='251-12'.encode())
+        smtp = SMTP('servername', 9090)
+        try:
+            self.assertIsNone(smtp.helo())
+        except Exception as excep:
+            self.assertRaises(Exception, excep)
+
+    def test_close(self):
+        SMTP._init_socket = MagicMock(return_value=socket.socket())
+        socket.socket.sendall = MagicMock()
+        socket.socket.close = MagicMock()
+        smtp = SMTP('servername', 9090)
+        self.assertIsNone(smtp.close())
+
+    def test_auth(self):
+        SMTP._init_socket = MagicMock(return_value=socket.socket())
+        socket.socket.sendall = MagicMock()
+        socket.socket.recv = MagicMock(return_value='230 ')
+        base64.b64encode = MagicMock(return_value='data')
+        smtp = SMTP('servername', 9090)
+        try:
+            self.assertIsNot(smtp.auth('login', 'password'))
+        except Exception as excep:
+            self.assertRaises(Exception, excep)
 
 
 if __name__ == '__main__':
