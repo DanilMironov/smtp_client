@@ -18,10 +18,10 @@ class Ziper:
 
     @staticmethod
     def get_zip_path(address):
-        suffix = re.search(r'\\?([ _0-9а-яА-Я\w]+)(.\w+)?$', address).group(1)
+        suffix = re.search(r'\\?([ _0-9а-яА-Я\w]+)([^\\]\w+)?$', address).group(1)
         # zip_path = r'C:\Users\я\Desktop\{0}.zip'.format(suffix)
         try:
-            zip_folder = re.search(r'(.+)(\\([ _0-9а-яА-Я\w]+)(.\w+)?$)', address)[1]
+            zip_folder = re.search(r'(.+)(\\([ _0-9а-яА-Я\w]+)(.\w+)?$)', address)[1] + '\\'
         except TypeError:
             zip_folder = ''
         zip_path = '{0}{1}.zip'.format(zip_folder, suffix)
