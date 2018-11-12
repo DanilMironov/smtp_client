@@ -41,7 +41,8 @@ class MakeEmail:
     def _make_attachment(filename):
         cont_type = mimetypes.guess_type(filename)
         beg = '--kwak\r\n'.encode()
-        name = re.match(r'.+\\(.+?)$', filename).group(1)
+        #name = re.match(r'.+\\(.+?)$', filename).group(1)
+        name = re.search(r'\\?([ _0-9а-яА-Я\w]+[^\\]\w+)?$', filename).group(1)
         content = 'Content-Type: {0}; name="{1}"\r\n'.format(cont_type.__getitem__(0), name).encode()
         charset = 'Content-Transfer-Encoding: base64\r\n'.encode()
         op = open(filename, 'rb')
