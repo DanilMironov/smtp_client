@@ -1,10 +1,3 @@
-from FormRedactor import FormRedactor as fred
-from EmailMaker import MakeEmail
-from MakeZip import Ziper
-from unittest.mock import MagicMock, patch
-from SMTP import SMTP
-from Main import Main
-from Client import AuthWindow, AttachmentWindow
 import argparse
 import unittest
 import base64
@@ -12,6 +5,13 @@ import tkinter as tk
 import os
 import socket
 import ssl
+from unittest.mock import MagicMock
+from FormRedactor import FormRedactor as Fred
+from EmailMaker import MakeEmail
+from MakeZip import Ziper
+from SMTP import SMTP
+from Main import Main
+from Client import AuthWindow, AttachmentWindow
 
 
 class TestEmailMaker(unittest.TestCase):
@@ -43,7 +43,8 @@ class TestEmailMaker(unittest.TestCase):
     def test_mail_with_one_recip(self):
         em = MakeEmail()
         list_of_recipient = ['mironovd1999@gmail.com']
-        form = em.create_email('сообщение', 'Данил', 'mironovd1999@yandex.ru', list_of_recipient, 'тема')
+        form = em.create_email('сообщение', 'Данил', 'mironovd1999@yandex.ru',
+                               list_of_recipient, 'тема')
         expectation = 'From: Данил <mironovd1999@yandex.ru>\r\n' \
                       'To: mironovd1999@gmail.com\r\n' \
                       'Subject: тема\r\n' \
@@ -57,10 +58,13 @@ class TestEmailMaker(unittest.TestCase):
 
     def test_mail_with_several_recip(self):
         em = MakeEmail()
-        list_of_recipient = ['mironovd1999@gmail.com', 'mironovd1999@yandex.ru']
-        form = em.create_email('сообщение', 'Данил', 'mironovd1999@yandex.ru', list_of_recipient, 'тема')
+        list_of_recipient = ['mironovd1999@gmail.com',
+                             'mironovd1999@yandex.ru']
+        form = em.create_email('сообщение', 'Данил', 'mironovd1999@yandex.ru',
+                               list_of_recipient, 'тема')
         expectation = 'From: Данил <mironovd1999@yandex.ru>\r\n' \
-                      'Cc: mironovd1999@gmail.com, mironovd1999@yandex.ru\r\n' \
+                      'Cc: mironovd1999@gmail.com, ' \
+                      'mironovd1999@yandex.ru\r\n' \
                       'Subject: тема\r\n' \
                       'MIME-Version: 1.0\r\n' \
                       'Content-Transfer-Encoding: 8bit\r\n' \
@@ -72,37 +76,48 @@ class TestEmailMaker(unittest.TestCase):
 
     def test_multiple_mail(self):
         em = MakeEmail()
-        list_of_recipient = ['mironovd1999@gmail.com', 'mironovd1999@yandex.ru']
-        list_of_files = [r'C:\Users\я\Desktop\шукстов.jpg']
+        list_of_recipient = ['mironovd1999@gmail.com',
+                             'mironovd1999@yandex.ru']
+        filename = 'test_att.txt'
+        list_of_files = [filename]
+        with open(filename, 'w', encoding='utf-8') as file:
+            file.write('blablabla')
         message = 'abracadabra'
         sender = 'mironovd1999@yandex.ru'
         subject = 'Theme'
         signature = 'Danil'
         beginning_field = 'MIME-Version: 1.0\r\n' \
-                          'Content-Type: multipart/mixed; boundary="kwak"\r\n'.encode()
+                          'Content-Type: multipart/mixed; ' \
+                          'boundary="kwak"\r\n'.encode()
         sender_place = 'From: Danil <mironovd1999@yandex.ru>\r\n'.encode()
-        recipient_place = 'Cc: mironovd1999@gmail.com, mironovd1999@yandex.ru\r\n'.encode()
+        recipient_place = 'Cc: mironovd1999@gmail.com, ' \
+                          'mironovd1999@yandex.ru\r\n'.encode()
         subject_place = 'Subject: Theme\r\n'.encode()
         other_place = '\r\n--kwak\r\n' \
-                     'Content-Type: text/plain; charset=utf-8\r\n' \
-                     'Content-Transfer-Encoding: 8bit\r\n' \
-                     '\r\n'.encode()
+                      'Content-Type: text/plain; charset=utf-8\r\n' \
+                      'Content-Transfer-Encoding: 8bit\r\n' \
+                      '\r\n'.encode()
         text = 'abracadabra\r\n'.encode()
         bound = '--kwak\r\n'.encode()
         op = open(list_of_files[0], 'rb')
         att = op.read()
         op.close()
         att = base64.b64encode(att)
-        cont_type = 'Content-Type: image/jpeg; name="шукстов.jpg"\r\n'.encode()
+        cont_type = 'Content-Type: text/plain; ' \
+                    'name="test_att.txt"\r\n'.encode()
         enc = 'Content-Transfer-Encoding: base64\r\n'.encode()
         expectation = beginning_field + \
-                      sender_place + \
-                      recipient_place + \
-                      subject_place + \
-                      other_place +\
-                      text + \
-                      bound + cont_type + enc + att + b'\r\n' + '--kwak--'.encode()
-        reality = em.create_multiple_email(message, signature, sender, list_of_recipient, list_of_files, subject)
+            sender_place + \
+            recipient_place + \
+            subject_place + \
+            other_place +\
+            text + \
+            bound + cont_type + enc + att + b'\r\n' + \
+            '--kwak--'.encode()
+        reality = em.create_multiple_email(message, signature, sender,
+                                           list_of_recipient,
+                                           list_of_files, subject)
+        os.remove(filename)
         self.assertEqual(expectation, reality)
 
 
@@ -113,53 +128,53 @@ class TestFormRedactor(unittest.TestCase):
             pass
         root = tk.Tk()
         text = 'blalala'
-        btn = fred.make_button(root, text, command)
+        btn = Fred.make_button(root, text, command)
         self.assertIsInstance(btn, tk.Button)
 
     def test_make_field(self):
         root = tk.Tk()
         text_label = 'abracadabra'
-        field = fred.make_field(root, text_label)
+        field = Fred.make_field(root, text_label)
         self.assertIsInstance(field, tk.Text)
 
     def test_make_message_field(self):
         root = tk.Tk()
-        message_field = fred.make_message_field(root)
+        message_field = Fred.make_message_field(root)
         self.assertIsInstance(message_field, tk.Text)
 
     def test_make_window(self):
         root = tk.Tk()
-        window = fred.make_window(root)
+        window = Fred.make_window(root)
         self.assertIsInstance(window, tk.Tk)
 
     def test_extract_info(self):
         expectation = 'abracadabra'
         text = tk.Text()
         text.insert(1.0, 'abracadabra')
-        result = fred.extract_info(text)
+        result = Fred.extract_info(text)
         self.assertEqual(expectation, result)
 
     def test_extract_list_info(self):
         expectation = ['abr', 'aca', 'dab', 'ra']
         text = tk.Text()
         text.insert(1.0, 'abr\naca\ndab\nra')
-        result = fred.extract_info(text, True)
+        result = Fred.extract_info(text, True)
         self.assertEqual(expectation, result)
 
 
 class TestMakeZip(unittest.TestCase):
 
     def test_make_zip(self):
-        file = open('filename.txt', 'w')
+        file = open('filename.txt', 'w', encoding='utf-8')
         file.write('abracadabra')
         file.close()
         lil_zip = Ziper()
         lil_zip.make_zip('filename.txt', 'filename.zip')
         os.remove('filename.txt')
-        with open('filename.zip', 'r') as zip_file:
-            data = zip_file.read()
+        with open('filename.zip', 'r'):
+            zip_existance = True
         os.remove('filename.zip')
-        self.assertIsNotNone(data)
+        self.assertTrue(zip_existance)
 
     def test_make_zip_folder(self):
         lil_zip = Ziper()
@@ -171,12 +186,12 @@ class TestMakeZip(unittest.TestCase):
             file_in_folder.write('Открывают чемодан, а там бобики')
         lil_zip.make_zip(folder_addr, exp_zip_path, True)
         with open(exp_zip_path, 'r') as zip_file:
-            data = zip_file.read()
-        self.assertIsNotNone(data)
+            zip_existance = True
+        self.assertTrue(zip_existance)
 
     def test_get_zip_path(self):
         lil_zip = Ziper()
-        with open('filename.txt', 'w') as file:
+        with open('filename.txt', 'w', encoding='utf-8') as file:
             file.write('abracadabra')
         address = 'filename.txt'
         expectation = 'filename.zip'
@@ -194,7 +209,7 @@ class TestSMTP(unittest.TestCase):
         self.assertIsInstance(smtp.sock, socket.socket)
         self.assertIsInstance(smtp.list_of_recip, list)
 
-    def test_socket(self):
+    def test_init_socket(self):
         socket.socket.connect = MagicMock()
         socket.socket.recv = MagicMock(return_value='220'.encode())
         socket.socket.sendall = MagicMock()
@@ -237,9 +252,9 @@ class TestSMTP(unittest.TestCase):
     def test_indicate_recipient_except(self):
         socket.socket.recv = MagicMock(return_value='350 '.encode())
         smtp = SMTP('servername', 9090)
-        list_of_recipients = ['recipient']
+        list_of_recip = ['recipient']
         try:
-            self.assertIsNone(smtp.indicate_the_recipient(list_of_recipients))
+            self.assertIsNone(smtp.indicate_the_recipient(list_of_recip))
         except Exception as ex:
             self.assertRaises(Exception, ex)
 
@@ -322,7 +337,7 @@ class TestMain(unittest.TestCase):
         self.assertIsNone(result)
 
     def test_indicate_some_not_none(self):
-        with open('fff.txt', 'w') as file:
+        with open('fff.txt', 'w', encoding='utf-8') as file:
             file.write('abracadabra')
         result = Main.indicate_some('fff.txt', 'blabla')
         os.remove('fff.txt')
@@ -386,4 +401,3 @@ class TestClient(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

@@ -8,8 +8,6 @@ class SMTP:
     def __init__(self, servername, port):
         self._server = (servername, port)
         self.sock = self._init_socket(self._server)
-        # self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # self.sock.connect(self._server)
         self.list_of_recip = list()
 
     @staticmethod
@@ -22,7 +20,8 @@ class SMTP:
         sock.sendall('STARTTLS\r\n'.encode())
         data = (sock.recv(1024)).decode()
         if data.split(' ')[0] != '220':
-            raise Exception('Can not start tls or server does not support the secure connection')
+            raise Exception("Can't start tls or server doesn't "
+                            "support the secure connection")
         sock = ssl.wrap_socket(sock, ssl_version=ssl.PROTOCOL_SSLv23)
         return sock
 
@@ -52,7 +51,8 @@ class SMTP:
         self.sock.sendall(password + b'\r\n')
         data = self._rec_data()
         if data.split(' ')[0] != '235':
-            raise Exception('Authentification failed!(INCORRECT LOGIN OR PASSWORD)')
+            raise Exception('Authentification failed!'
+                            '(INCORRECT LOGIN OR PASSWORD)')
 
     def helo(self):
         self._send_data('EHLO user')
@@ -64,7 +64,8 @@ class SMTP:
         self._send_data('MAIL FROM:<{}>'.format(sender))
         data = self._rec_data()
         if data.split(' ')[0] != '250':
-            raise Exception('Incorrect name of sender or need a secure connection(ssl)! Try again.')
+            raise Exception('Incorrect name of sender or '
+                            'need a secure connection(ssl)! Try again.')
 
     def indicate_the_recipient(self, list_of_recipients):
         for recipient in list_of_recipients:
@@ -87,4 +88,3 @@ class SMTP:
     def close(self):
         self._send_data('QUIT')
         self.sock.close()
-

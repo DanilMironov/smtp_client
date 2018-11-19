@@ -26,7 +26,9 @@ class FormRedactor:
         return btn
 
     @staticmethod
-    def make_field(root, text_label, label_height=1, text_height=1, width=50, font='TimesNewRoman 12'):
+    def make_field(root, text_label,
+                   label_height=1, text_height=1,
+                   width=50, font='TimesNewRoman 12'):
         label = tk.Label(root,
                          text=text_label,
                          height=label_height,
@@ -50,6 +52,8 @@ class FormRedactor:
     def make_window(root, size_x=600, size_y=300):
         screen_w = root.winfo_screenwidth()
         screen_h = root.winfo_screenheight()
-        root.geometry('{0}x{1}+{2}+{3}'.format(size_x, size_y, int(screen_w / 4), int(screen_h / 4)))
+        root.geometry('{0}x{1}+{2}+{3}'.format(size_x,
+                                               size_y,
+                                               int(screen_w / 4),
+                                               int(screen_h / 4)))
         return root
-

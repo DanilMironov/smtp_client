@@ -1,6 +1,6 @@
+import argparse
 from EmailMaker import MakeEmail
 from SMTP import SMTP
-import argparse
 from MakeZip import Ziper
 
 
@@ -13,28 +13,39 @@ class Main:
     def create_parser():
         parser = argparse.ArgumentParser(description='SMTP-client.')
         parser.add_argument('-s', '--ssl', action='store_true',
-                            help='If you want create the safe connection you can use it')
+                            help='If you want create the safe connection'
+                                 ' you can use it')
         parser.add_argument('-t', '--test', action='store_true',
                             help='If you want to test the program')
-        parser.add_argument('-srv', '--server', default='smtp.yandex.ru', type=str,
-                            help='To send the letter you must enter the servername. '
+        parser.add_argument('-srv', '--server',
+                            default='smtp.yandex.ru',
+                            type=str,
+                            help='To send the letter '
+                                 'you must enter the servername. '
                                  'Default: smtp.yandex.ru')
         parser.add_argument('-p', '--port', default=587, type=int,
-                            help='To send the letter you must enter the port. '
+                            help='To send the letter you '
+                                 'must enter the port. '
                                  'Default: 587')
         parser.add_argument('-mu', '--multi', action='store_true',
                             help='If you want to add attachment')
         parser.add_argument('-html', '--html', action='store_true',
-                            help='If you want to send the html-page you should use this key. \n'
-                                 'ATTENTION!>>>>Sending html-page is impossible without key "-mu/--multi"')
+                            help='If you want to send the html-page '
+                                 'you should use this key. \n'
+                                 'ATTENTION!>>>>Sending html-page '
+                                 'is impossible without key "-mu/--multi"')
         parser.add_argument('-z', '--zip', action='store_true',
                             help='If you want to send the zip archive. \n'
-                                 'ATTENTION!>>>Sending zip is impossible withount key "-mu/--multi"')
+                                 'ATTENTION!>>>Sending zip is '
+                                 'impossible withount key "-mu/--multi"')
         parser.add_argument('-sbj', '--subject', default='', type=str,
                             help='If the subject of mail too long to print '
-                                 'you can add filename from where to read the subject')
+                                 'you can add filename from where '
+                                 'to read the subject')
         parser.add_argument('-m', '--message', default='', type=str,
-                            help='If the message too long you can add filename from where to read the text')
+                            help='If the message too long '
+                                 'you can add filename '
+                                 'from where to read the text')
         return parser
 
     def identify_serv(self):
@@ -59,7 +70,8 @@ class Main:
 
     @staticmethod
     def _get_attachment():
-        return Main._indicate('Please enter the path to the file of attachment("." means the end of input)')
+        return Main._indicate('Please enter the path to the file '
+                              'of attachment("." means the end of input)')
 
     @staticmethod
     def make_attachment_list(path_list):
@@ -83,7 +95,8 @@ class Main:
 
     @staticmethod
     def indicate_zip():
-        return Main._indicate('Please enter the path to the file you want to archive')
+        return Main._indicate('Please enter the path to the file '
+                              'you want to archive')
 
     @staticmethod
     def indicate_signature():
@@ -115,35 +128,40 @@ class Main:
         return path_list
 
     @staticmethod
-    def tadaam(serv: SMTP, multi, zip, text, signature, sender, recip_list, subject):
+    def tadaam(serv: SMTP, multi, is_zip,
+               text, signature, sender,
+               recip_list, subject):
         em = MakeEmail()
         path_list = []
         if multi:
-            if zip:
+            if is_zip:
                 Main.app_zip(path_list)
             Main.make_attachment_list(path_list)
-            message = em.create_multiple_email(text, signature, sender, recip_list, path_list, subject)
+            message = em.create_multiple_email(text, signature, sender,
+                                               recip_list, path_list, subject)
             serv.send_email(message, True)
         else:
-            message = em.create_email(text, signature, sender, recip_list, subject)
+            message = em.create_email(text, signature, sender,
+                                      recip_list, subject)
             serv.send_email(message)
         serv.close()
 
     @staticmethod
     def main():
         main = Main()
-        serv = main.identify_serv()
-        serv.helo()
+        server = main.identify_serv()
+        server.helo()
         sender = Main.indicate_sender()
         password = Main.indicate_pwd()
-        Main.make_ssl(main.parser.ssl, serv, sender, password)
-        serv.indicate_the_sender(sender)
+        Main.make_ssl(main.parser.ssl, server, sender, password)
+        server.indicate_the_sender(sender)
         recip_list = Main.make_list_recip()
-        serv.indicate_the_recipient(recip_list)
-        subject = Main.indicate_some(main.parser.subject, 'Enter the subject of mail')
+        server.indicate_the_recipient(recip_list)
+        subject = Main.indicate_some(main.parser.subject,
+                                     'Enter the subject of mail')
         signature = Main.indicate_signature()
         text = Main.indicate_some(main.parser.message, 'Enter the text')
-        Main.tadaam(serv,
+        Main.tadaam(server,
                     main.parser.multi,
                     main.parser.zip,
                     text, signature,
@@ -152,4 +170,3 @@ class Main:
 
 if __name__ == '__main__':
     Main.main()
-
