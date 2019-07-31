@@ -31,7 +31,7 @@ class MakeEmail:
     @staticmethod
     def _make_other_field(laddr):
         other = 'MIME-Version: 1.0\r\n' \
-                'Content-Transfer-Encoding: 8bit\r\n' \
+                'Content-Transfer-Encoding: base64\r\n' \
                 'Content-Type: text/plain; charset=utf-8\r\n' \
                 'Return-Path: {0}\r\n' \
                 '\r\n'.format(laddr)
@@ -62,9 +62,20 @@ class MakeEmail:
         subj = self._make_subject_field(subject).encode()
         body1 = '\r\n--kwak\r\n' \
                 'Content-Type: text/plain; charset=utf-8\r\n' \
-                'Content-Transfer-Encoding: 8bit\r\n' \
+                'Content-Transfer-Encoding: base64\r\n' \
                 '\r\n'.encode()
-        text = (message + '\r\n').encode()
+        # message_words = message.split('\n')
+        # new_words = []
+        # for word in message_words:
+        #     if word[0] == '.':
+        #         word = word + '.'
+        #     new_words.append(word)
+        # print(new_words)
+        # message = '\n'.join(new_words)
+        # if message[0] == '.' and len(message) == 1:
+        #     message += '.'
+        # text = (base64.b64encode(message) + '\r\n').encode()
+        text = base64.b64encode(message.encode())
         attachments = ''.encode()
         for element in files:
             attachment = self._make_attachment(element)
@@ -74,12 +85,26 @@ class MakeEmail:
             body1 + text + attachments + end
         return email
 
-    def create_email(self, message, signature,
+    def create_email(self, message: str, signature,
                      l_address, r_address, subject=None):
         sender = self._make_sender_field(signature, l_address)
         recipient = self._make_recipient_field(r_address)
         subj = self._make_subject_field(subject)
         other = self._make_other_field(l_address)
         form = sender + recipient + subj + other
-        email = form + message
+        # print(type(form))
+        # print(type(message))
+        # message_words = message.split('\n')
+        # new_words = []
+        # for word in message_words:
+        #     if word[0] == '.':
+        #         word = word + '.'
+        #     new_words.append(word)
+        # print(new_words)
+        # message = '\n'.join(new_words)
+        print(message)
+        email = form + base64.b64encode(message.encode()).decode()
+        # email = form + message
+        print(email)
+        # print(base64.b64encode(message))
         return email

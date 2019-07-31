@@ -14,6 +14,7 @@ class SMTP:
     def _init_socket(address):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect(address)
+        print(address)
         data = (sock.recv(1024)).decode()
         if data.split(' ')[0] != '220':
             raise Exception('Can not connect to the server')
@@ -23,6 +24,7 @@ class SMTP:
             raise Exception("Can't start tls or server doesn't "
                             "support the secure connection")
         sock = ssl.wrap_socket(sock, ssl_version=ssl.PROTOCOL_SSLv23)
+        #  = ssl.wrap_socket(sock)
         return sock
 
     def _send_data(self, message, is_byte=False):
@@ -51,12 +53,14 @@ class SMTP:
         self.sock.sendall(password + b'\r\n')
         data = self._rec_data()
         if data.split(' ')[0] != '235':
+            # print(data.split(' '))
             raise Exception('Authentification failed!'
                             '(INCORRECT LOGIN OR PASSWORD)')
 
     def helo(self):
         self._send_data('EHLO user')
         data = self._rec_data()
+        print(data)
         if data.split('-')[0] != '250':
             raise Exception("Server is not responding.")
 
